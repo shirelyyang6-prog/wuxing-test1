@@ -1,1 +1,470 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>五感体质测试 · 找到属于你的疗愈节奏</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700&family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#1C1917;
+    --paper:#FAF6F0;
+    --paper-2:#F2EBE0;
+    --terracotta:#C46A47;
+    --umber:#6B4226;
+    --jade:#4A5D45;
+    --gold:#B8935A;
+    --line: rgba(28,25,23,0.12);
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html,body{height:100%;}
+  body{
+    background: var(--paper);
+    color: var(--ink);
+    font-family: "Noto Sans SC", sans-serif;
+    font-weight: 300;
+    -webkit-font-smoothing: antialiased;
+    overflow-x:hidden;
+  }
+  .serif{ font-family:"Noto Serif SC", serif; }
+
+  /* subtle paper texture */
+  body::before{
+    content:"";
+    position:fixed; inset:0;
+    background-image:
+      radial-gradient(circle at 20% 20%, rgba(196,106,71,0.05), transparent 40%),
+      radial-gradient(circle at 80% 70%, rgba(107,66,38,0.05), transparent 40%);
+    pointer-events:none;
+    z-index:0;
+  }
+
+  .app{ position:relative; z-index:1; max-width:560px; margin:0 auto; min-height:100vh; display:flex; flex-direction:column; }
+
+  /* ember progress bar — burns left to right like incense */
+  .ember-track{
+    position:sticky; top:0; z-index:20;
+    height:3px; width:100%;
+    background: var(--paper-2);
+  }
+  .ember-fill{
+    height:100%;
+    background: linear-gradient(90deg, var(--umber), var(--terracotta) 70%, var(--gold));
+    width:0%;
+    transition: width .6s cubic-bezier(.65,0,.35,1);
+    position:relative;
+  }
+  .ember-fill::after{
+    content:"";
+    position:absolute; right:-3px; top:50%; transform:translateY(-50%);
+    width:8px; height:8px; border-radius:50%;
+    background: var(--gold);
+    box-shadow: 0 0 8px 3px rgba(184,147,90,0.7);
+  }
+
+  .screen{
+    flex:1;
+    display:none;
+    flex-direction:column;
+    justify-content:center;
+    padding: 48px 28px 64px;
+    animation: rise .5s ease both;
+  }
+  .screen.active{ display:flex; }
+  @keyframes rise{
+    from{ opacity:0; transform: translateY(14px); }
+    to{ opacity:1; transform: translateY(0); }
+  }
+
+  /* ---- intro ---- */
+  .eyebrow{
+    font-size:13px; letter-spacing:.16em; color: var(--terracotta);
+    text-transform:uppercase; margin-bottom:18px; font-weight:500;
+  }
+  h1.title{
+    font-size: clamp(30px, 7vw, 44px);
+    line-height:1.25;
+    font-weight:700;
+    margin-bottom:18px;
+  }
+  .lede{ font-size:16px; line-height:1.9; color: rgba(28,25,23,0.72); margin-bottom:34px; max-width:46ch; }
+
+  .btn{
+    appearance:none; border:none; cursor:pointer;
+    font-family:"Noto Sans SC", sans-serif; font-weight:500; font-size:15px;
+    padding:16px 30px; border-radius:2px;
+    background: var(--ink); color: var(--paper);
+    letter-spacing:.02em;
+    transition: transform .25s ease, background .25s ease;
+    align-self:flex-start;
+  }
+  .btn:hover{ background: var(--terracotta); transform: translateY(-2px); }
+  .btn.ghost{
+    background:transparent; color:var(--ink);
+    border:1px solid var(--line);
+  }
+  .btn.ghost:hover{ background: var(--paper-2); }
+  .btn.full{ width:100%; align-self:stretch; text-align:center; }
+
+  .disclaimer-line{
+    margin-top:40px; font-size:12.5px; color: rgba(28,25,23,0.42); line-height:1.7; max-width:44ch;
+  }
+
+  /* ---- question ---- */
+  .q-index{
+    font-size:13px; color: rgba(28,25,23,0.5); margin-bottom:14px; letter-spacing:.05em;
+  }
+  .q-text{
+    font-size: clamp(22px, 5.5vw, 28px);
+    font-weight:600; line-height:1.5; margin-bottom:30px;
+  }
+  .options{ display:flex; flex-direction:column; gap:12px; }
+  .option{
+    text-align:left;
+    padding:18px 20px;
+    border:1px solid var(--line);
+    background: rgba(255,255,255,0.4);
+    border-radius:2px;
+    font-family:"Noto Sans SC", sans-serif; font-size:15.5px; color:var(--ink);
+    cursor:pointer;
+    transition: border-color .2s ease, background .2s ease, transform .15s ease;
+    display:flex; align-items:center; gap:14px;
+  }
+  .option:hover{ border-color: var(--terracotta); background: rgba(196,106,71,0.06); transform: translateX(3px); }
+  .option .dot{
+    width:8px; height:8px; border-radius:50%; border:1.5px solid var(--umber); flex-shrink:0;
+    transition: background .2s ease;
+  }
+  .option:hover .dot{ background: var(--terracotta); border-color: var(--terracotta); }
+
+  .nav-row{ margin-top:34px; display:flex; justify-content:space-between; align-items:center;}
+  .back-link{ font-size:13.5px; color: rgba(28,25,23,0.5); cursor:pointer; background:none; border:none; font-family:inherit;}
+  .back-link:hover{ color: var(--ink); }
+
+  /* ---- loading ---- */
+  .loading-wrap{ align-items:center; text-align:center; }
+  .censer{
+    width:64px; height:64px; margin:0 auto 26px;
+    position:relative;
+  }
+  .censer .smoke{
+    position:absolute; bottom:40px; left:50%; width:2px; height:40px;
+    background: linear-gradient(to top, rgba(107,66,38,0.5), transparent);
+    transform-origin:bottom center;
+    animation: sway 2.4s ease-in-out infinite;
+  }
+  .censer .smoke:nth-child(2){ left:calc(50% + 6px); animation-delay:.4s; opacity:.6; }
+  .censer .smoke:nth-child(3){ left:calc(50% - 6px); animation-delay:.8s; opacity:.4; }
+  @keyframes sway{
+    0%,100%{ transform: rotate(-6deg) scaleY(1); opacity:.7; }
+    50%{ transform: rotate(6deg) scaleY(1.08); opacity:.3; }
+  }
+  .censer .base{
+    position:absolute; bottom:0; left:50%; transform:translateX(-50%);
+    width:44px; height:14px; border-radius:3px;
+    background: var(--umber);
+  }
+  .loading-text{ font-size:15px; color: rgba(28,25,23,0.6); }
+
+  /* ---- result ---- */
+  .result-badge{
+    font-size:13px; letter-spacing:.14em; text-transform:uppercase; color:var(--terracotta);
+    margin-bottom:14px; font-weight:500;
+  }
+  .result-name{
+    font-size: clamp(30px, 8vw, 46px); font-weight:700; line-height:1.2; margin-bottom:16px;
+  }
+  .result-desc{ font-size:16px; line-height:1.9; color: rgba(28,25,23,0.75); margin-bottom:30px; }
+
+  .element-bars{ margin-bottom:34px; }
+  .element-row{ display:flex; align-items:center; gap:12px; margin-bottom:10px; }
+  .element-label{ width:44px; font-size:14px; color: rgba(28,25,23,0.6); flex-shrink:0; }
+  .element-track{ flex:1; height:6px; background: var(--paper-2); border-radius:3px; overflow:hidden; }
+  .element-fill{ height:100%; border-radius:3px; transition: width 1s ease; }
+
+  .section-title{
+    font-size:12.5px; letter-spacing:.14em; text-transform:uppercase; color: var(--umber);
+    margin: 36px 0 16px; font-weight:600; border-top:1px solid var(--line); padding-top:24px;
+  }
+  .rec-card{
+    background: rgba(255,255,255,0.5);
+    border:1px solid var(--line);
+    border-left: 3px solid var(--terracotta);
+    padding:18px 20px; margin-bottom:14px; border-radius:2px;
+  }
+  .rec-card .rec-title{ font-weight:600; font-size:15px; margin-bottom:6px; }
+  .rec-card .rec-body{ font-size:14.5px; line-height:1.75; color: rgba(28,25,23,0.7); }
+
+  .cta-block{
+    margin-top:40px; padding:28px 24px;
+    background: var(--ink); color: var(--paper);
+    border-radius:3px; text-align:center;
+  }
+  .cta-block .cta-title{ font-family:"Noto Serif SC", serif; font-size:20px; font-weight:600; margin-bottom:10px; }
+  .cta-block .cta-desc{ font-size:14px; color: rgba(250,246,240,0.72); line-height:1.7; margin-bottom:20px; }
+  .cta-block .btn{ background: var(--gold); color: var(--ink); align-self:center; }
+  .cta-block .btn:hover{ background: var(--terracotta); color:var(--paper); }
+
+  .restart-link{
+    display:block; text-align:center; margin-top:24px; font-size:13px;
+    color: rgba(28,25,23,0.45); cursor:pointer; background:none; border:none; font-family:inherit;
+  }
+  .restart-link:hover{ color: var(--ink); }
+
+  .foot-disclaimer{
+    margin-top:34px; font-size:11.5px; color: rgba(28,25,23,0.4); line-height:1.7; text-align:center;
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    *{ animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+  }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <div class="ember-track"><div class="ember-fill" id="emberFill"></div></div>
+
+  <!-- INTRO -->
+  <section class="screen active" id="screen-intro">
+    <div class="eyebrow">五感体质测试</div>
+    <h1 class="title serif">你的身体，<br>此刻最需要什么？</h1>
+    <p class="lede">五个问题，帮你看清当下的状态偏向 —— 是燥、是寒、是郁、还是虚。测试结束后，会给你一套对应的嗅觉、听觉、味觉、视觉、触觉调理建议，都是可以当天就用起来的小事。</p>
+    <button class="btn" onclick="startQuiz()">开始测试 · 约2分钟</button>
+    <p class="disclaimer-line">本测试基于身心放松的自我觉察设计，结果为生活方式参考，不构成医疗、心理或护理诊断建议。</p>
+  </section>
+
+  <!-- QUESTIONS injected here -->
+  <div id="questions-container"></div>
+
+  <!-- LOADING -->
+  <section class="screen loading-wrap" id="screen-loading">
+    <div class="censer">
+      <div class="smoke"></div><div class="smoke"></div><div class="smoke"></div>
+      <div class="base"></div>
+    </div>
+    <p class="loading-text">正在为你梳理体质倾向…</p>
+  </section>
+
+  <!-- RESULT -->
+  <section class="screen" id="screen-result"></section>
+</div>
+
+<script>
+/* ---------------- DATA ---------------- */
+// Each option maps to element scores: 木(wood) 火(fire) 土(earth) 金(metal) 水(water)
+const QUESTIONS = [
+  {
+    text: "最近的状态更接近哪一种？",
+    options: [
+      { label: "怕冷，手脚容易凉，提不起劲", scores:{水:2, 金:1} },
+      { label: "心浮气躁，容易上火、失眠", scores:{火:2, 木:1} },
+      { label: "闷闷的，喘不上气，容易叹气", scores:{木:2, 金:1} },
+      { label: "疲惫但睡不安稳，脑子很乱", scores:{水:1, 土:2} },
+    ]
+  },
+  {
+    text: "压力大的时候，你的身体反应通常是？",
+    options: [
+      { label: "后背肩颈紧绷、僵硬", scores:{金:2, 木:1} },
+      { label: "胃口变差，肠胃不舒服", scores:{土:2, 木:1} },
+      { label: "心跳快、坐立不安", scores:{火:2} },
+      { label: "整个人发懒，什么都不想做", scores:{水:2, 土:1} },
+    ]
+  },
+  {
+    text: "你更容易被哪种环境影响情绪？",
+    options: [
+      { label: "冷、阴暗、安静过头的空间让我更低落", scores:{水:2, 金:1} },
+      { label: "嘈杂拥挤的地方让我很快没电", scores:{木:2} },
+      { label: "闷热或者干燥的天气让我很烦躁", scores:{火:2} },
+      { label: "环境变化大（换城市/换工作）时最难适应", scores:{土:2, 水:1} },
+    ]
+  },
+  {
+    text: "睡眠状态更像？",
+    options: [
+      { label: "很难入睡，脑子停不下来", scores:{火:2, 木:1} },
+      { label: "睡得着但很浅，容易醒", scores:{水:2} },
+      { label: "睡够了还是累，怎么睡都不够", scores:{土:2} },
+      { label: "整体还行，但偶尔会做很多梦", scores:{木:1, 水:1} },
+    ]
+  },
+  {
+    text: "如果现在有半小时完全属于自己，你最想做什么？",
+    options: [
+      { label: "泡个热水澡或者泡脚，什么都不想", scores:{水:1, 土:2} },
+      { label: "戴耳机听点安静的音乐，不被打扰", scores:{金:2} },
+      { label: "出去走走，晒晒太阳", scores:{火:2, 木:1} },
+      { label: "找人说说话，倒倒苦水", scores:{木:2} },
+    ]
+  }
+];
+
+const RESULTS = {
+  水: {
+    name: "寒水内敛型",
+    desc: "你的能量偏向沉静内收，情绪不外露，但容易在深处积压疲惫感。身体常年偏凉，做事谨慎却容易内耗。你需要的不是'打起精神'，而是持续、温和地为身体添一点暖意，让沉下去的气慢慢浮上来。",
+    color:"#4A6FA5",
+    recs: [
+      { title:"嗅觉：生姜、肉桂、广藿香", body:"温暖厚重的气味最适合你，晚上滴入香薰机，配合暖光灯使用效果更明显。" },
+      { title:"味觉：姜枣茶、温热汤品", body:"早起一杯姜枣茶，避免生冷冰饮，是最简单也最有效的调理方式。" },
+      { title:"触觉：睡前泡脚15-20分钟", body:"水温不烫手为宜，可加姜片或艾草，泡到身体微微发热，有助于安神入睡。" },
+    ]
+  },
+  火: {
+    name: "焦灼上炎型",
+    desc: "你的情绪反应快、能量足，但也容易'烧'得太急——上火、失眠、心浮气躁常常找上你。你不缺能量，缺的是让能量'落地'的方式，需要一点稳、一点凉，把往上冲的劲儿引下来。",
+    color:"#C46A47",
+    recs: [
+      { title:"嗅觉：薄荷、佛手柑（少量）", body:"清凉微透的气味能帮你降降火气，但避免过量使用薄荷类以防过度刺激。" },
+      { title:"听觉：低频、稳定的声音", body:"大提琴、古琴、白噪音，睡前听10-15分钟，帮助神经系统慢慢降速。" },
+      { title:"触觉：晚间拉伸+深呼吸", body:"简单的拉伸配合4-7-8呼吸法（吸4秒屏7秒呼8秒），能有效平复亢奋状态。" },
+    ]
+  },
+  木: {
+    name: "郁结待舒型",
+    desc: "你心思细腻，容易共情，但也容易把情绪都憋在心里，胸闷、叹气、肩颈紧是常有的事。你需要的不是压抑情绪，而是找到安全的方式把'憋着的气'疏散出去。",
+    color:"#4A5D45",
+    recs: [
+      { title:"嗅觉：甜橙、佛手柑、葡萄柚", body:"柑橘类的气味有轻快舒展的作用，白天工作学习时使用尤其合适。" },
+      { title:"触觉：拍打肩颈、伸展胸腔", body:"每天早晚轻拍肩颈100下，配合扩胸运动，帮助打开被'憋住'的部位。" },
+      { title:"表达：找人说说话或写下来", body:"情绪需要出口，写日记、和信任的人聊天，都是很好的疏解方式。" },
+    ]
+  },
+  土: {
+    name: "气虚需固型",
+    desc: "你容易疲惫，做什么都提不起劲，睡再多也觉得不够，胃口和消化也常常受影响。你的能量像是漏了个小口，需要的是'固本'——把根基一点点养回来，而不是靠硬撑。",
+    color:"#B8935A",
+    recs: [
+      { title:"味觉：小米粥、山药、南瓜", body:"温和好消化的食物能减轻脾胃负担，是最基础也最重要的调理方式。" },
+      { title:"视觉：暖色调环境", body:"卧室和常待的空间尽量用大地色、焦糖色，减少冷色系带来的疏离感。" },
+      { title:"作息：规律比'补'更重要", body:"固定的睡眠和进食时间，比任何食补都更能帮你把'底子'养回来。" },
+    ]
+  },
+  金: {
+    name: "紧绷压抑型",
+    desc: "你对自己要求高，习惯把感受收起来，身体常常比情绪先'说话'——背部僵硬、呼吸浅、容易莫名的疼痛感。你需要的是允许自己'松'下来，把绷紧的部分一点点释放。",
+    color:"#6B4226",
+    recs: [
+      { title:"听觉：留白与安静", body:"每天留出10分钟完全的安静时间，不听任何声音，只是呼吸，对你尤其重要。" },
+      { title:"触觉：刮痧或按摩后背", body:"顺着肩颈到后背的方向轻柔按压或刮痧，配合精油使用，能有效缓解紧绷。" },
+      { title:"视觉：减少屏幕时间", body:"睡前1小时远离屏幕，换成暖光阅读，给神经系统一个'收工'的信号。" },
+    ]
+  },
+};
+
+/* ---------------- STATE ---------------- */
+let currentQ = 0;
+let scores = {木:0, 火:0, 土:0, 金:0, 水:0};
+
+const container = document.getElementById('questions-container');
+QUESTIONS.forEach((q, qi) => {
+  const section = document.createElement('section');
+  section.className = 'screen';
+  section.id = 'screen-q' + qi;
+  section.innerHTML = `
+    <div class="q-index">问题 ${qi+1} / ${QUESTIONS.length}</div>
+    <div class="q-text serif">${q.text}</div>
+    <div class="options">
+      ${q.options.map((opt, oi) => `
+        <button class="option" onclick="answer(${qi}, ${oi})">
+          <span class="dot"></span>${opt.label}
+        </button>
+      `).join('')}
+    </div>
+    <div class="nav-row">
+      ${qi > 0 ? `<button class="back-link" onclick="goTo(${qi-1})">← 上一题</button>` : `<span></span>`}
+    </div>
+  `;
+  container.appendChild(section);
+});
+
+function setEmber(pct){
+  document.getElementById('emberFill').style.width = pct + '%';
+}
+
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+function startQuiz(){
+  currentQ = 0;
+  scores = {木:0, 火:0, 土:0, 金:0, 水:0};
+  showScreen('screen-q0');
+  setEmber(8);
+}
+
+function goTo(qi){
+  currentQ = qi;
+  showScreen('screen-q' + qi);
+  setEmber(8 + (qi / QUESTIONS.length) * 80);
+}
+
+function answer(qi, oi){
+  const opt = QUESTIONS[qi].options[oi];
+  Object.entries(opt.scores).forEach(([el, val]) => { scores[el] += val; });
+
+  if (qi + 1 < QUESTIONS.length){
+    goTo(qi + 1);
+  } else {
+    setEmber(92);
+    showScreen('screen-loading');
+    setTimeout(renderResult, 1400);
+  }
+}
+
+function renderResult(){
+  setEmber(100);
+  const topElement = Object.entries(scores).sort((a,b) => b[1]-a[1])[0][0];
+  const result = RESULTS[topElement];
+  const maxScore = Math.max(...Object.values(scores), 1);
+
+  const elementOrder = ['木','火','土','金','水'];
+  const elementColors = {木:'#4A5D45', 火:'#C46A47', 土:'#B8935A', 金:'#6B4226', 水:'#4A6FA5'};
+
+  const barsHtml = elementOrder.map(el => `
+    <div class="element-row">
+      <div class="element-label">${el}</div>
+      <div class="element-track">
+        <div class="element-fill" style="width:${(scores[el]/maxScore*100)}%; background:${elementColors[el]};"></div>
+      </div>
+    </div>
+  `).join('');
+
+  const recsHtml = result.recs.map(r => `
+    <div class="rec-card" style="border-left-color:${result.color}">
+      <div class="rec-title">${r.title}</div>
+      <div class="rec-body">${r.body}</div>
+    </div>
+  `).join('');
+
+  document.getElementById('screen-result').innerHTML = `
+    <div class="result-badge">你的测试结果</div>
+    <div class="result-name serif" style="color:${result.color}">${result.name}</div>
+    <p class="result-desc">${result.desc}</p>
+
+    <div class="element-bars">${barsHtml}</div>
+
+    <div class="section-title">为你推荐的五感调理</div>
+    ${recsHtml}
+
+    <div class="cta-block">
+      <div class="cta-title serif">想要完整的每日仪式方案？</div>
+      <p class="cta-desc">《五感自我关怀手册》包含全部体质类型的详细调理方式，以及可以直接照做的晨间/日间/夜间仪式安排。</p>
+      <button class="btn" onclick="alert('这里可以换成你的公众号二维码、微店链接或预约表单')">获取完整手册</button>
+    </div>
+
+    <button class="restart-link" onclick="showScreen('screen-intro'); setEmber(0);">重新测试</button>
+    <p class="foot-disclaimer">测试结果为生活方式与自我觉察参考，不构成医疗、护理或心理诊断意见。如有持续的身心不适，请咨询专业医生或心理咨询师。</p>
+  `;
+  showScreen('screen-result');
+}
+</script>
+</body>
+</html>
 
