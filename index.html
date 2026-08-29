@@ -1,847 +1,181 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=390px, initial-scale=1.0, maximum-scale=1.0">
-<title>QiFlow AI · 栖息</title>
-<style>
-/* ============ TOKENS ============ */
-:root{
-  --sage:   #6C8A62;
-  --sage-l: #8BA47A;
-  --sage-d: #4E6547;
-  --mist:   #F6F5F2;
-  --linen:  #E9DFC9;
-  --gold:   #E7C46A;
-  --ink:    #2A2A2A;
-  --ink-m:  rgba(42,42,42,.55);
-  --ink-l:  rgba(42,42,42,.30);
-  --glass:  rgba(246,245,242,.72);
-  --glass2: rgba(246,245,242,.55);
-  --shadow: 0 8px 32px rgba(108,138,98,.13);
-  --r:      28px;
-  --r-s:    16px;
-}
-*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
-html,body{width:390px;max-width:390px;min-height:100vh;overflow-x:hidden;background:#1a2218;font-family:-apple-system,'SF Pro Display','PingFang SC','Noto Sans SC',sans-serif;font-size:15px;color:var(--ink);}
-
-/* ============ SCREENS ============ */
-.screen{position:fixed;inset:0;width:390px;overflow-y:auto;overflow-x:hidden;display:none;flex-direction:column;transition:opacity .35s ease,transform .35s ease;}
-.screen.active{display:flex;opacity:1;transform:translateY(0);}
-.screen.entering{animation:slideUp .38s cubic-bezier(.4,0,.2,1) both;}
-.screen.leaving{animation:slideDown .32s cubic-bezier(.4,0,.2,1) both;}
-@keyframes slideUp{from{opacity:0;transform:translateY(40px);}to{opacity:1;transform:translateY(0);}}
-@keyframes slideDown{from{opacity:1;transform:translateY(0);}to{opacity:0;transform:translateY(-30px);}}
-
-/* ============ SHARED ============ */
-.glass-card{background:var(--glass);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-radius:var(--r);border:1px solid rgba(255,255,255,.5);box-shadow:var(--shadow);}
-.pill-btn{display:inline-flex;align-items:center;justify-content:center;border:none;cursor:pointer;font-size:15px;font-weight:600;border-radius:50px;padding:14px 28px;transition:all .2s ease;}
-.pill-btn.primary{background:var(--sage);color:#fff;}
-.pill-btn.primary:active{background:var(--sage-d);}
-.pill-btn.outline{background:var(--glass);border:1.5px solid var(--sage);color:var(--sage);}
-.pill-btn.ghost{background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.3);}
-.tag{display:inline-flex;align-items:center;gap:5px;background:rgba(108,138,98,.12);color:var(--sage-d);border-radius:50px;padding:6px 14px;font-size:13px;font-weight:500;cursor:pointer;transition:all .2s;}
-.tag.active{background:var(--sage);color:#fff;}
-.section-label{font-size:12px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-m);margin-bottom:10px;}
-.nav-bar{position:sticky;top:0;z-index:10;display:flex;align-items:center;padding:52px 20px 12px;background:linear-gradient(to bottom,var(--mist) 70%,transparent);}
-.nav-title{font-size:17px;font-weight:600;flex:1;text-align:center;}
-.back-btn{width:36px;height:36px;border-radius:50%;background:var(--glass);border:1px solid rgba(255,255,255,.5);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:18px;line-height:1;color:var(--ink);}
-.disclaimer{font-size:11.5px;color:var(--ink-l);text-align:center;line-height:1.6;padding:16px 24px 24px;}
-
-/* ============ FOREST BG ============ */
-.forest-bg{
-  background:
-    radial-gradient(ellipse 60% 40% at 50% 100%, #2d4a23 0%, transparent 70%),
-    radial-gradient(ellipse 80% 60% at 30% 80%, #1e3518 0%, transparent 60%),
-    radial-gradient(ellipse 80% 60% at 70% 90%, #253d1c 0%, transparent 60%),
-    linear-gradient(180deg,#0d1a0b 0%,#1a2e14 30%,#2a4520 60%,#3a5a2a 100%);
-  position:relative;overflow:hidden;
-}
-.forest-bg::before{
-  content:"";position:absolute;inset:0;
-  background:radial-gradient(ellipse 100% 50% at 50% 0%,rgba(231,196,106,.08),transparent 60%);
-}
-.mist-layer{position:absolute;bottom:0;left:0;right:0;height:200px;
-  background:linear-gradient(to top,rgba(246,245,242,.15),transparent);
-  pointer-events:none;}
-
-/* ============ 1. SPLASH ============ */
-#splash{justify-content:center;align-items:center;min-height:100vh;}
-.splash-bg{position:absolute;inset:0;}
-.splash-content{position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;gap:0;width:100%;}
-.splash-logo-ring{width:96px;height:96px;border-radius:28px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;margin-bottom:28px;backdrop-filter:blur(10px);}
-.splash-logo-inner{width:56px;height:56px;}
-.splash-name{font-size:36px;font-weight:700;color:#fff;letter-spacing:-.02em;margin-bottom:6px;}
-.splash-zh{font-size:17px;color:rgba(255,255,255,.65);font-weight:400;margin-bottom:10px;}
-.splash-dot{width:4px;height:4px;border-radius:50%;background:var(--gold);margin:0 auto 48px;}
-.splash-slogan{font-size:14px;color:rgba(255,255,255,.5);margin-bottom:56px;text-align:center;line-height:1.7;}
-
-/* ============ 2. HOME DASHBOARD ============ */
-#home{background:var(--mist);}
-.home-header{background:linear-gradient(160deg,#1a2e14 0%,#2a4520 50%,#3d5e2e 100%);padding:56px 24px 80px;position:relative;overflow:hidden;}
-.home-header::after{content:"";position:absolute;bottom:-40px;left:0;right:0;height:80px;background:var(--mist);border-radius:40px 40px 0 0;}
-.home-greeting{font-size:13px;color:rgba(255,255,255,.6);margin-bottom:4px;}
-.home-date{font-size:20px;font-weight:600;color:#fff;margin-bottom:24px;}
-.score-ring-wrap{display:flex;justify-content:center;margin-bottom:0;}
-.score-ring{position:relative;width:160px;height:160px;}
-.score-ring svg{width:160px;height:160px;transform:rotate(-90deg);}
-.score-track{fill:none;stroke:rgba(255,255,255,.12);stroke-width:10;}
-.score-fill{fill:none;stroke:var(--gold);stroke-width:10;stroke-linecap:round;stroke-dasharray:427;stroke-dashoffset:100;transition:stroke-dashoffset 1.2s cubic-bezier(.4,0,.2,1);}
-.score-center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;}
-.score-num{font-size:42px;font-weight:700;color:#fff;line-height:1;}
-.score-label{font-size:12px;color:rgba(255,255,255,.5);margin-top:2px;}
-.home-content{padding:0 20px 24px;}
-.metrics-row{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:10px;margin-top:-40px;position:relative;z-index:1;margin-bottom:20px;}
-.metric-card{padding:14px 10px;text-align:center;}
-.metric-icon{font-size:20px;margin-bottom:6px;}
-.metric-val{font-size:16px;font-weight:700;color:var(--ink);margin-bottom:2px;}
-.metric-lbl{font-size:10px;color:var(--ink-m);}
-.solar-card{padding:16px 20px;margin-bottom:16px;display:flex;align-items:center;gap:14px;}
-.solar-icon{font-size:32px;}
-.solar-info .solar-title{font-size:15px;font-weight:600;color:var(--ink);margin-bottom:2px;}
-.solar-info .solar-sub{font-size:12px;color:var(--ink-m);}
-.tasks-title{font-size:17px;font-weight:600;margin-bottom:12px;}
-.task-item{display:flex;align-items:center;gap:14px;padding:14px 16px;margin-bottom:10px;cursor:pointer;}
-.task-dot{width:8px;height:8px;border-radius:50%;background:var(--sage);flex-shrink:0;}
-.task-dot.done{background:var(--linen);}
-.task-text{flex:1;font-size:14px;color:var(--ink);}
-.task-time{font-size:12px;color:var(--ink-m);}
-.task-check{width:22px;height:22px;border-radius:50%;border:2px solid var(--ink-l);display:flex;align-items:center;justify-content:center;font-size:12px;color:transparent;}
-.task-check.done{background:var(--sage);border-color:var(--sage);color:#fff;}
-.start-btn-wrap{padding:0 20px 40px;}
-
-/* ============ 3. ASSESSMENT ============ */
-#assess{background:var(--mist);}
-.assess-content{padding:0 20px 100px;}
-.body-diagram{display:flex;justify-content:center;margin:10px 0 20px;position:relative;}
-.body-svg{width:160px;height:260px;}
-.body-part{cursor:pointer;transition:all .2s;}
-.body-part:hover{opacity:.8;}
-.body-part.selected .body-fill{fill:rgba(108,138,98,.35);stroke:var(--sage);stroke-width:2;}
-.body-fill{fill:rgba(200,210,195,.4);stroke:rgba(108,138,98,.3);stroke-width:1.5;transition:all .2s;}
-.body-part-label{font-size:10px;fill:var(--sage-d);font-weight:500;}
-.symptoms-grid{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:24px;}
-.sliders-wrap{display:flex;flex-direction:column;gap:16px;margin-bottom:24px;}
-.slider-row{display:flex;flex-direction:column;gap:8px;}
-.slider-row label{font-size:13px;font-weight:500;color:var(--ink);display:flex;justify-content:space-between;}
-.slider-row label span{color:var(--sage);font-weight:600;}
-input[type=range]{width:100%;-webkit-appearance:none;height:6px;border-radius:3px;background:linear-gradient(to right,var(--sage) var(--pct,50%),var(--linen) var(--pct,50%));outline:none;}
-input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:22px;height:22px;border-radius:50%;background:#fff;border:2px solid var(--sage);box-shadow:0 2px 8px rgba(108,138,98,.3);}
-.assess-bottom{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:390px;padding:16px 24px 36px;background:linear-gradient(to top,var(--mist) 70%,transparent);}
-
-/* ============ 4. RECOVERY SCORE ============ */
-#score-page{background:var(--mist);}
-.score-hero{background:linear-gradient(160deg,#1a2e14,#3d5e2e);padding:56px 24px 48px;display:flex;flex-direction:column;align-items:center;}
-.big-score{font-size:80px;font-weight:700;color:#fff;line-height:1;margin:16px 0 4px;}
-.score-tag{background:rgba(231,196,106,.2);color:var(--gold);border-radius:50px;padding:5px 16px;font-size:13px;font-weight:500;}
-.hex-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;padding:0 20px;margin-top:20px;}
-.hex-item{padding:16px 12px;text-align:center;}
-.hex-score{font-size:22px;font-weight:700;color:var(--sage);margin-bottom:4px;}
-.hex-label{font-size:11px;color:var(--ink-m);}
-.focus-card{margin:20px;padding:20px;}
-.focus-title{font-size:13px;font-weight:600;color:var(--ink-m);margin-bottom:12px;letter-spacing:.05em;}
-.focus-items{display:flex;flex-direction:column;gap:8px;}
-.focus-item{display:flex;align-items:center;gap:10px;font-size:14px;color:var(--ink);}
-.focus-dot{width:8px;height:8px;border-radius:50%;background:var(--gold);flex-shrink:0;}
-
-/* ============ 5. FIVE SENSES ============ */
-#senses{background:var(--mist);}
-.senses-content{padding:0 0 100px;}
-.sense-section{margin-bottom:0;}
-.sense-header{padding:20px 20px 12px;display:flex;align-items:center;gap:10px;}
-.sense-icon{font-size:22px;}
-.sense-name{font-size:17px;font-weight:600;}
-.carousel{display:flex;gap:14px;overflow-x:auto;padding:0 20px 16px;scrollbar-width:none;}
-.carousel::-webkit-scrollbar{display:none;}
-.c-card{min-width:200px;padding:18px;flex-shrink:0;cursor:pointer;transition:transform .2s;}
-.c-card:active{transform:scale(.97);}
-.c-card-icon{font-size:28px;margin-bottom:10px;}
-.c-card-title{font-size:14px;font-weight:600;margin-bottom:6px;}
-.c-card-desc{font-size:12px;color:var(--ink-m);line-height:1.5;margin-bottom:14px;}
-.c-card-btn{font-size:12px;font-weight:600;color:var(--sage);background:rgba(108,138,98,.1);border:none;border-radius:50px;padding:7px 14px;cursor:pointer;}
-.audio-player{margin:0 20px 20px;padding:20px;}
-.audio-track{display:flex;align-items:center;gap:12px;margin-bottom:14px;}
-.audio-thumb{width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,var(--sage),var(--sage-l));display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;}
-.audio-info{flex:1;}
-.audio-name{font-size:14px;font-weight:600;margin-bottom:2px;}
-.audio-dur{font-size:12px;color:var(--ink-m);}
-.audio-controls{display:flex;align-items:center;justify-content:center;gap:20px;}
-.audio-btn{width:36px;height:36px;border-radius:50%;background:none;border:none;font-size:18px;cursor:pointer;color:var(--ink-m);display:flex;align-items:center;justify-content:center;}
-.audio-play{width:52px;height:52px;background:var(--sage);color:#fff;font-size:20px;border-radius:50%;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 16px rgba(108,138,98,.4);}
-.prog-bar{height:4px;background:var(--linen);border-radius:2px;margin:12px 0 8px;cursor:pointer;}
-.prog-fill{height:100%;width:35%;background:var(--sage);border-radius:2px;}
-.senses-disclaimer{margin:0 20px;padding:12px 16px;background:rgba(108,138,98,.06);border-radius:var(--r-s);font-size:11.5px;color:var(--ink-l);text-align:center;line-height:1.6;}
-
-/* ============ 6. MOVEMENT ============ */
-#movement{background:var(--mist);}
-.move-content{padding:0 20px 100px;}
-.move-ai-card{padding:16px 20px;margin-bottom:20px;background:linear-gradient(135deg,rgba(108,138,98,.12),rgba(139,164,122,.08));}
-.move-ai-label{font-size:11px;font-weight:600;color:var(--sage);letter-spacing:.08em;margin-bottom:4px;}
-.move-ai-text{font-size:13px;color:var(--ink-m);line-height:1.5;}
-.move-cards{display:flex;flex-direction:column;gap:14px;}
-.move-card{padding:0;overflow:hidden;cursor:pointer;}
-.move-card-img{height:130px;background:linear-gradient(135deg,#2a4520,#4a7040);display:flex;align-items:center;justify-content:center;font-size:48px;position:relative;}
-.move-badge{position:absolute;top:12px;right:12px;background:rgba(0,0,0,.4);color:#fff;border-radius:50px;padding:4px 10px;font-size:11px;font-weight:500;}
-.move-card-body{padding:16px;}
-.move-card-title{font-size:16px;font-weight:600;margin-bottom:4px;}
-.move-card-sub{font-size:12px;color:var(--ink-m);margin-bottom:12px;}
-.move-meta{display:flex;gap:12px;margin-bottom:14px;}
-.move-meta-item{display:flex;align-items:center;gap:4px;font-size:12px;color:var(--ink-m);}
-.streak-row{display:flex;gap:6px;}
-.streak-dot{width:28px;height:28px;border-radius:50%;background:var(--linen);display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--ink-m);}
-.streak-dot.done{background:var(--sage);color:#fff;}
-
-/* ============ 7. FOOD ============ */
-#food{background:var(--mist);}
-.food-content{padding:0 20px 100px;}
-.nutrition-card{padding:18px 20px;margin-bottom:20px;}
-.nutrition-bars{display:flex;flex-direction:column;gap:12px;margin-top:14px;}
-.nutr-row{display:flex;align-items:center;gap:10px;}
-.nutr-label{width:44px;font-size:12px;color:var(--ink-m);}
-.nutr-track{flex:1;height:6px;background:var(--linen);border-radius:3px;overflow:hidden;}
-.nutr-fill{height:100%;border-radius:3px;background:var(--sage);transition:width 1s ease;}
-.nutr-val{width:48px;font-size:12px;color:var(--ink);text-align:right;}
-.meal-tabs{display:flex;gap:8px;margin-bottom:16px;}
-.meal-tab{flex:1;padding:8px;border:1.5px solid var(--linen);border-radius:var(--r-s);background:none;font-size:13px;font-weight:500;color:var(--ink-m);cursor:pointer;text-align:center;transition:all .2s;}
-.meal-tab.active{border-color:var(--sage);color:var(--sage);background:rgba(108,138,98,.07);}
-.recipe-card{padding:0;overflow:hidden;margin-bottom:14px;cursor:pointer;}
-.recipe-img{height:110px;background:linear-gradient(135deg,#c8a870,#d4b88a);display:flex;align-items:center;justify-content:center;font-size:44px;}
-.recipe-body{padding:14px 16px;}
-.recipe-name{font-size:15px;font-weight:600;margin-bottom:4px;}
-.recipe-tags{display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap;}
-.recipe-tag{font-size:11px;background:rgba(108,138,98,.1);color:var(--sage-d);border-radius:50px;padding:3px 10px;}
-.recipe-bottom{display:flex;justify-content:space-between;align-items:center;}
-.recipe-kcal{font-size:12px;color:var(--ink-m);}
-
-/* ============ 8. FOREST ============ */
-#forest-page{min-height:100vh;}
-.forest-content{position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;padding:56px 20px 60px;}
-.forest-header{width:100%;display:flex;align-items:center;margin-bottom:32px;}
-.forest-title{flex:1;text-align:center;font-size:17px;font-weight:600;color:#fff;}
-.journey-label{font-size:12px;color:rgba(255,255,255,.5);letter-spacing:.1em;text-transform:uppercase;margin-bottom:4px;}
-.journey-days{font-size:36px;font-weight:700;color:#fff;line-height:1;}
-.journey-sub{font-size:13px;color:rgba(255,255,255,.55);margin-bottom:32px;}
-.forest-tree-area{width:100%;display:flex;justify-content:center;margin:0 0 32px;}
-.forest-tree{width:240px;height:300px;}
-.tree-stats{width:100%;display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:24px;}
-.stat-card{padding:16px;background:rgba(255,255,255,.1);backdrop-filter:blur(12px);border-radius:var(--r-s);border:1px solid rgba(255,255,255,.15);}
-.stat-val{font-size:24px;font-weight:700;color:#fff;margin-bottom:2px;}
-.stat-label{font-size:12px;color:rgba(255,255,255,.55);}
-.milestone-row{width:100%;display:flex;gap:10px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none;}
-.milestone-row::-webkit-scrollbar{display:none;}
-.milestone{flex-shrink:0;padding:10px 16px;background:rgba(255,255,255,.08);border-radius:50px;border:1px solid rgba(255,255,255,.15);display:flex;align-items:center;gap:8px;}
-.milestone.done{background:rgba(231,196,106,.2);border-color:rgba(231,196,106,.4);}
-.milestone span{font-size:18px;}
-.milestone p{font-size:11px;color:rgba(255,255,255,.65);}
-.milestone.done p{color:var(--gold);}
-
-/* ============ BOTTOM NAV ============ */
-.bottom-nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:390px;background:var(--glass);backdrop-filter:blur(20px);border-top:1px solid rgba(255,255,255,.5);display:flex;padding:10px 0 24px;z-index:100;}
-.nav-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;border:none;background:none;}
-.nav-item-icon{font-size:22px;}
-.nav-item-label{font-size:10px;color:var(--ink-l);}
-.nav-item.active .nav-item-label{color:var(--sage);font-weight:600;}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- SEO Meta -->
+    <title>Fishing Tackle Manufacturer | Reliable China Fishing Gear Supplier</title>
+    <meta name="description" content="Your trusted fishing tackle supply partner from China, OEM ODM fishing rod,reel,lures,serve Europe,America,Middle East market.">
+    <meta name="keywords" content="China fishing tackle manufacturer,fishing gear supplier,custom fishing rod OEM,wholesale fishing equipment">
+    <!-- 结构化数据 SEO -->
+    <script type="application/ld+json">
+    {
+        "@context":"https://schema.org",
+        "@type":"Manufacturer",
+        "name":"Fishing Tackle Factory",
+        "description":"Your trusted fishing tackle supply partner",
+        "address":{"@type":"PostalAddress","addressCountry":"CN"}
+    }
+    </script>
+    <link rel="stylesheet" href="assets/css/style.css">
 </head>
 <body>
-
-<!-- ============ 1. SPLASH ============ -->
-<div class="screen active forest-bg" id="splash">
-  <div class="mist-layer"></div>
-  <div class="splash-content">
-    <div class="splash-logo-ring">
-      <svg class="splash-logo-inner" viewBox="0 0 56 56" fill="none">
-        <circle cx="28" cy="28" r="26" stroke="rgba(255,255,255,.3)" stroke-width="1.5"/>
-        <path d="M20 38 Q20 20 28 14 Q36 20 36 38" fill="rgba(108,138,98,.8)"/>
-        <path d="M24 38 Q24 26 28 20 Q32 26 32 38" fill="rgba(139,164,122,.9)"/>
-        <path d="M28 14 Q30 18 28 22 Q26 18 28 14" fill="rgba(231,196,106,.9)"/>
-        <line x1="28" y1="38" x2="28" y2="44" stroke="rgba(108,138,98,.6)" stroke-width="2" stroke-linecap="round"/>
-        <line x1="22" y1="42" x2="34" y2="42" stroke="rgba(108,138,98,.5)" stroke-width="1.5" stroke-linecap="round"/>
-      </svg>
+<!-- Cookie弹窗 -->
+<div class="cookie-popup" id="cookiePopup">
+    <div class="cookie-box">
+        <p>We use cookies to optimize your browsing experience. By continuing, you agree to our <a href="privacy.html">Privacy Policy</a></p>
+        <button class="btn-primary" onclick="closeCookie()">Accept</button>
     </div>
-    <div class="splash-name">QiFlow AI</div>
-    <div class="splash-zh">栖息</div>
-    <div class="splash-dot"></div>
-    <div class="splash-slogan">每天 10 分钟<br>让 AI 陪你恢复身心</div>
-    <button class="pill-btn ghost" onclick="gotoScreen('home')" style="font-size:16px;padding:16px 48px;">开始恢复旅程</button>
-  </div>
 </div>
 
-<!-- ============ 2. HOME DASHBOARD ============ -->
-<div class="screen" id="home">
-  <div class="home-header">
-    <div class="home-greeting">早上好，今天是</div>
-    <div class="home-date" id="home-date-text">2026年8月23日 · 小满后第5天</div>
-    <div class="score-ring-wrap">
-      <div class="score-ring">
-        <svg viewBox="0 0 160 160"><circle class="score-track" cx="80" cy="80" r="68"/><circle class="score-fill" cx="80" cy="80" r="68" id="score-ring-fill"/></svg>
-        <div class="score-center">
-          <div class="score-num">78</div>
-          <div class="score-label">Recovery</div>
+<!-- 导航栏 -->
+<header class="header">
+    <div class="container nav-wrap">
+        <div class="logo">FISHING TACKLE SUPPLIER</div>
+        <div class="lang-switch">
+            <select id="langSelect">
+                <option value="en">English</option>
+                <option value="ar">العربية</option>
+                <option value="es">Español</option>
+            </select>
         </div>
-      </div>
+        <nav class="nav-menu">
+            <a href="index.html" data-en="Home" data-ar="الرئيسية" data-es="Inicio">Home</a>
+            <a href="products.html" data-en="Products" data-ar="المنتجات" data-es="Productos">Products</a>
+            <a href="about.html" data-en="About Us" data-ar="من نحن" data-es="Sobre Nosotros">About Us</a>
+            <a href="contact.html" data-en="Contact" data-ar="اتصل بنا" data-es="Contacto">Contact</a>
+        </nav>
     </div>
-  </div>
-  <div class="home-content">
-    <div class="metrics-row">
-      <div class="glass-card metric-card"><div class="metric-icon">🌙</div><div class="metric-val">6.5h</div><div class="metric-lbl">睡眠</div></div>
-      <div class="glass-card metric-card"><div class="metric-icon">💆</div><div class="metric-val">偏高</div><div class="metric-lbl">压力</div></div>
-      <div class="glass-card metric-card"><div class="metric-icon">🥗</div><div class="metric-val">72%</div><div class="metric-lbl">营养</div></div>
-      <div class="glass-card metric-card"><div class="metric-icon">⚡</div><div class="metric-val">中等</div><div class="metric-lbl">活力</div></div>
-    </div>
-    <div class="glass-card solar-card">
-      <div class="solar-icon">🌿</div>
-      <div class="solar-info">
-        <div class="solar-title">亥时养生提醒 · 21:00-23:00</div>
-        <div class="solar-sub">三焦经当令，宜安神入睡。建议：泡脚放松 + 轻音乐</div>
-      </div>
-    </div>
-    <div class="tasks-title">今日恢复任务</div>
-    <div class="glass-card task-item" onclick="toggleTask(this)">
-      <div class="task-dot done"></div>
-      <div class="task-text">早晨红枣桂圆茶</div>
-      <div class="task-time">已完成</div>
-      <div class="task-check done">✓</div>
-    </div>
-    <div class="glass-card task-item" onclick="toggleTask(this)">
-      <div class="task-dot"></div>
-      <div class="task-text">五感音乐疗愈 20分钟</div>
-      <div class="task-time">21:00</div>
-      <div class="task-check"></div>
-    </div>
-    <div class="glass-card task-item" onclick="toggleTask(this)">
-      <div class="task-dot"></div>
-      <div class="task-text">腹式呼吸训练 5分钟</div>
-      <div class="task-time">21:30</div>
-      <div class="task-check"></div>
-    </div>
-    <div class="glass-card task-item" onclick="toggleTask(this)">
-      <div class="task-dot"></div>
-      <div class="task-text">温水泡脚放松</div>
-      <div class="task-time">22:00</div>
-      <div class="task-check"></div>
-    </div>
-  </div>
-  <div class="start-btn-wrap">
-    <button class="pill-btn primary" style="width:100%;" onclick="gotoScreen('assess')">开始 AI 亚健康评估</button>
-  </div>
-  <div style="height:80px;"></div>
-  <div class="bottom-nav">
-    <button class="nav-item active"><div class="nav-item-icon">🏠</div><div class="nav-item-label">首页</div></button>
-    <button class="nav-item" onclick="gotoScreen('senses')"><div class="nav-item-icon">🌿</div><div class="nav-item-label">五感</div></button>
-    <button class="nav-item" onclick="gotoScreen('movement')"><div class="nav-item-icon">🧘</div><div class="nav-item-label">运动</div></button>
-    <button class="nav-item" onclick="gotoScreen('food')"><div class="nav-item-icon">🥗</div><div class="nav-item-label">食疗</div></button>
-    <button class="nav-item" onclick="gotoScreen('forest-page')"><div class="nav-item-icon">🌳</div><div class="nav-item-label">森林</div></button>
-  </div>
-</div>
+</header>
 
-<!-- ============ 3. ASSESSMENT ============ -->
-<div class="screen" id="assess">
-  <div style="background:var(--mist);min-height:100vh;">
-    <div class="nav-bar">
-      <button class="back-btn" onclick="gotoScreen('home')">←</button>
-      <div class="nav-title">AI 亚健康评估</div>
-      <div style="width:36px;"></div>
-    </div>
-    <div class="assess-content">
-      <div class="section-label" style="padding:0 4px;">点击身体部位</div>
-      <div class="body-diagram">
-        <svg class="body-svg" viewBox="0 0 160 260">
-          <!-- Head -->
-          <g class="body-part" id="part-head" onclick="toggleBodyPart(this)">
-            <ellipse class="body-fill" cx="80" cy="28" rx="22" ry="24"/>
-            <text class="body-part-label" x="80" y="62" text-anchor="middle">头部</text>
-          </g>
-          <!-- Neck/Shoulder -->
-          <g class="body-part" id="part-neck" onclick="toggleBodyPart(this)">
-            <path class="body-fill" d="M58 70 Q60 60 80 58 Q100 60 102 70 L106 88 Q90 92 80 92 Q70 92 54 88 Z"/>
-            <text class="body-part-label" x="80" y="86" text-anchor="middle">肩颈</text>
-          </g>
-          <!-- Chest -->
-          <g class="body-part" id="part-chest" onclick="toggleBodyPart(this)">
-            <rect class="body-fill" x="56" y="92" width="48" height="38" rx="8"/>
-            <text class="body-part-label" x="80" y="116" text-anchor="middle">胸口</text>
-          </g>
-          <!-- Abdomen -->
-          <g class="body-part" id="part-abdomen" onclick="toggleBodyPart(this)">
-            <rect class="body-fill" x="58" y="132" width="44" height="34" rx="8"/>
-            <text class="body-part-label" x="80" y="153" text-anchor="middle">胃部</text>
-          </g>
-          <!-- Lower back -->
-          <g class="body-part" id="part-back" onclick="toggleBodyPart(this)">
-            <rect class="body-fill" x="56" y="168" width="48" height="28" rx="8"/>
-            <text class="body-part-label" x="80" y="186" text-anchor="middle">腰部</text>
-          </g>
-          <!-- Pelvis -->
-          <g class="body-part" id="part-pelvis" onclick="toggleBodyPart(this)">
-            <ellipse class="body-fill" cx="80" cy="210" rx="28" ry="12"/>
-            <text class="body-part-label" x="80" y="214" text-anchor="middle">骨盆</text>
-          </g>
-          <!-- Knees -->
-          <g class="body-part" id="part-knee" onclick="toggleBodyPart(this)">
-            <ellipse class="body-fill" cx="66" cy="244" rx="14" ry="12"/>
-            <ellipse class="body-fill" cx="94" cy="244" rx="14" ry="12"/>
-            <text class="body-part-label" x="80" y="260" text-anchor="middle">膝部</text>
-          </g>
-        </svg>
-      </div>
-
-      <div class="section-label">症状选择（可多选）</div>
-      <div class="symptoms-grid" id="symptoms-grid">
-        <div class="tag" onclick="this.classList.toggle('active')">肩颈酸痛</div>
-        <div class="tag" onclick="this.classList.toggle('active')">失眠多梦</div>
-        <div class="tag" onclick="this.classList.toggle('active')">胃胀不适</div>
-        <div class="tag" onclick="this.classList.toggle('active')">疲劳乏力</div>
-        <div class="tag" onclick="this.classList.toggle('active')">腰酸背痛</div>
-        <div class="tag" onclick="this.classList.toggle('active')">手脚冰凉</div>
-        <div class="tag" onclick="this.classList.toggle('active')">头晕头痛</div>
-        <div class="tag" onclick="this.classList.toggle('active')">消化不良</div>
-        <div class="tag" onclick="this.classList.toggle('active')">情绪低落</div>
-      </div>
-
-      <div class="section-label">情绪状态</div>
-      <div class="sliders-wrap">
-        <div class="slider-row"><label>焦虑程度 <span id="sl1-val">5</span>/10</label><input type="range" min="1" max="10" value="5" oninput="updateSlider(this,'sl1-val')"></div>
-        <div class="slider-row"><label>情绪波动 <span id="sl2-val">4</span>/10</label><input type="range" min="1" max="10" value="4" oninput="updateSlider(this,'sl2-val')"></div>
-        <div class="slider-row"><label>注意力集中 <span id="sl3-val">6</span>/10</label><input type="range" min="1" max="10" value="6" oninput="updateSlider(this,'sl3-val')"></div>
-        <div class="slider-row"><label>今日动力 <span id="sl4-val">5</span>/10</label><input type="range" min="1" max="10" value="5" oninput="updateSlider(this,'sl4-val')"></div>
-      </div>
-      <div class="disclaimer">本评估为生活方式健康参考，不构成医疗诊断，不能替代专业医生建议。</div>
-    </div>
-    <div class="assess-bottom">
-      <button class="pill-btn primary" style="width:100%;" onclick="gotoScreen('score-page')">生成 Recovery 分析</button>
-    </div>
-  </div>
-</div>
-
-<!-- ============ 4. RECOVERY SCORE ============ -->
-<div class="screen" id="score-page">
-  <div style="background:var(--mist);min-height:100vh;">
-    <div class="score-hero">
-      <div style="display:flex;align-items:center;width:100%;margin-bottom:16px;">
-        <button class="back-btn" style="background:rgba(255,255,255,.15);border-color:rgba(255,255,255,.3);" onclick="gotoScreen('assess')"><span style="color:#fff;">←</span></button>
-        <div style="flex:1;text-align:center;font-size:17px;font-weight:600;color:#fff;">Recovery 分析</div>
-        <div style="width:36px;"></div>
-      </div>
-      <div class="score-tag">今日综合评分</div>
-      <div class="big-score" id="animated-score">0</div>
-      <div style="font-size:14px;color:rgba(255,255,255,.6);">轻度疲劳 · 需要关注压力恢复</div>
-    </div>
-    <div class="hex-grid">
-      <div class="glass-card hex-item"><div class="hex-score">68</div><div class="hex-label">睡眠</div></div>
-      <div class="glass-card hex-item"><div class="hex-score">58</div><div class="hex-label">压力</div></div>
-      <div class="glass-card hex-item"><div class="hex-score">82</div><div class="hex-label">营养</div></div>
-      <div class="glass-card hex-item"><div class="hex-score">74</div><div class="hex-label">活动</div></div>
-      <div class="glass-card hex-item"><div class="hex-score">71</div><div class="hex-label">情绪</div></div>
-      <div class="glass-card hex-item"><div class="hex-score">79</div><div class="hex-label">恢复力</div></div>
-    </div>
-    <div class="glass-card focus-card">
-      <div class="focus-title">TODAY'S FOCUS · 今日需要关注</div>
-      <div class="focus-items">
-        <div class="focus-item"><div class="focus-dot"></div>肩颈紧绷，建议今日做肩颈放松跟练</div>
-        <div class="focus-item"><div class="focus-dot"></div>压力指数偏高，推荐 5 分钟腹式呼吸</div>
-        <div class="focus-item"><div class="focus-dot"></div>睡眠不足，今晚建议 22:30 前入睡</div>
-      </div>
-    </div>
-    <div style="padding:0 20px 40px;">
-      <button class="pill-btn primary" style="width:100%;margin-bottom:10px;" onclick="gotoScreen('senses')">进入五感疗愈</button>
-      <button class="pill-btn outline" style="width:100%;" onclick="gotoScreen('movement')">查看运动推荐</button>
-    </div>
-  </div>
-</div>
-
-<!-- ============ 5. FIVE SENSES ============ -->
-<div class="screen" id="senses">
-  <div style="background:var(--mist);min-height:100vh;">
-    <div class="nav-bar">
-      <button class="back-btn" onclick="gotoScreen('home')">←</button>
-      <div class="nav-title">五感疗愈</div>
-      <div style="width:36px;"></div>
-    </div>
-    <div class="senses-content">
-      <!-- Visual -->
-      <div class="sense-header"><div class="sense-icon">👁</div><div class="sense-name">视觉疗愈</div></div>
-      <div class="carousel">
-        <div class="glass-card c-card" style="background:linear-gradient(135deg,rgba(108,138,98,.15),rgba(139,164,122,.1));">
-          <div class="c-card-icon">🌿</div>
-          <div class="c-card-title">今日配色灵感</div>
-          <div class="c-card-desc">鼠尾草绿 · 燕麦白 · 雾灰<br>柔和自然，舒缓视觉疲劳</div>
-          <div style="display:flex;gap:6px;margin-bottom:12px;"><div style="width:24px;height:24px;border-radius:50%;background:#6C8A62;"></div><div style="width:24px;height:24px;border-radius:50%;background:#EDE8DE;"></div><div style="width:24px;height:24px;border-radius:50%;background:#C8CCC8;"></div></div>
-          <button class="c-card-btn">查看搭配</button>
+<!-- 轮播Banner -->
+<section class="banner">
+    <div class="banner-slide active">
+        <div class="banner-content">
+            <h1 data-en="Your Trusted Fishing Tackle Supply Partner" data-ar="شريك توريد معدات الصيد الموثوق" data-es="Su socio de confianza en suministro de artículos de pesca">Your Trusted Fishing Tackle Supply Partner</h1>
+            <p data-en="OEM & ODM Fishing Gear Factory For Europe, America & Middle East" data-ar="مصنع معدات صيد OEM وODM لأوروبا وأمريكا والشرق الأوسط" data-es="Fábrica de artículos de pesca OEM y ODM para Europa, América y Oriente Medio">OEM & ODM Fishing Gear Factory For Europe, America & Middle East</p>
+            <a href="contact.html" class="btn-primary" data-en="Get A Quote" data-ar="احصل على عرض سعر" data-es="Obtener Cotización">Get A Quote</a>
         </div>
-        <div class="glass-card c-card">
-          <div class="c-card-icon">🌅</div>
-          <div class="c-card-title">柔和森林背景</div>
-          <div class="c-card-desc">晨雾林间 · 护眼模式<br>20分钟沉浸放松</div>
-          <button class="c-card-btn">开始体验</button>
-        </div>
-        <div class="glass-card c-card">
-          <div class="c-card-icon">📿</div>
-          <div class="c-card-title">今日首饰灵感</div>
-          <div class="c-card-desc">珍珠 · 玉石 · 水晶<br>美学搭配，提升气质感</div>
-          <button class="c-card-btn">查看搭配</button>
-        </div>
-      </div>
-
-      <!-- Audio -->
-      <div class="sense-header"><div class="sense-icon">👂</div><div class="sense-name">听觉疗愈</div></div>
-      <div class="audio-player glass-card">
-        <div style="font-size:11px;color:var(--sage);font-weight:600;letter-spacing:.08em;margin-bottom:10px;">AI 推荐 · 今天适合森林白噪音 20 分钟</div>
-        <div class="audio-track">
-          <div class="audio-thumb">🌲</div>
-          <div class="audio-info"><div class="audio-name">晨间森林</div><div class="audio-dur">20:00 · 白噪音</div></div>
-          <div style="font-size:18px;cursor:pointer;">♡</div>
-        </div>
-        <div class="prog-bar"><div class="prog-fill"></div></div>
-        <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--ink-l);margin-bottom:12px;"><span>07:02</span><span>20:00</span></div>
-        <div class="audio-controls">
-          <button class="audio-btn">⏮</button>
-          <button class="audio-play" id="play-btn" onclick="togglePlay()">▶</button>
-          <button class="audio-btn">⏭</button>
-        </div>
-      </div>
-      <div class="carousel">
-        <div class="glass-card c-card"><div class="c-card-icon">🌲</div><div class="c-card-title">森林清晨</div><div class="c-card-desc">鸟鸣虫声，自然白噪音</div><button class="c-card-btn">播放</button></div>
-        <div class="glass-card c-card"><div class="c-card-icon">🌧</div><div class="c-card-title">轻雨绵绵</div><div class="c-card-desc">雨声助眠，深度放松</div><button class="c-card-btn">播放</button></div>
-        <div class="glass-card c-card"><div class="c-card-icon">🎵</div><div class="c-card-title">古琴清心</div><div class="c-card-desc">传统乐器，静心调息</div><button class="c-card-btn">播放</button></div>
-        <div class="glass-card c-card"><div class="c-card-icon">🌊</div><div class="c-card-title">海浪轻拍</div><div class="c-card-desc">海浪节律，缓解焦虑</div><button class="c-card-btn">播放</button></div>
-      </div>
-
-      <!-- Smell -->
-      <div class="sense-header"><div class="sense-icon">👃</div><div class="sense-name">嗅觉疗愈</div></div>
-      <div class="carousel">
-        <div class="glass-card c-card"><div class="c-card-icon">🍋</div><div class="c-card-title">佛手柑</div><div class="c-card-desc">适合：白天放松<br>方式：香薰机 2 滴<br>时长：30-60 分钟<br><span style="font-size:11px;color:var(--ink-l);">孕期请谨慎使用</span></div><button class="c-card-btn">了解更多</button></div>
-        <div class="glass-card c-card"><div class="c-card-icon">💜</div><div class="c-card-title">薰衣草</div><div class="c-card-desc">适合：睡前助眠<br>方式：枕边 1 滴<br>时长：整夜<br><span style="font-size:11px;color:var(--ink-l);">敏感体质请谨慎</span></div><button class="c-card-btn">了解更多</button></div>
-        <div class="glass-card c-card"><div class="c-card-icon">🌿</div><div class="c-card-title">雪松</div><div class="c-card-desc">适合：冥想静心<br>方式：香薰机 3 滴<br>时长：20-40 分钟<br><span style="font-size:11px;color:var(--ink-l);">孕期请谨慎使用</span></div><button class="c-card-btn">了解更多</button></div>
-        <div class="glass-card c-card"><div class="c-card-icon">🪵</div><div class="c-card-title">檀香</div><div class="c-card-desc">适合：夜间静思<br>方式：线香燃烧<br>时长：20 分钟<br><span style="font-size:11px;color:var(--ink-l);">保持通风</span></div><button class="c-card-btn">了解更多</button></div>
-      </div>
-
-      <!-- Taste -->
-      <div class="sense-header"><div class="sense-icon">👅</div><div class="sense-name">味觉食养</div></div>
-      <div class="carousel">
-        <div class="glass-card c-card"><div class="c-card-icon">🫖</div><div class="c-card-title">红枣桂圆茶</div><div class="c-card-desc">适合：日常暖养<br>冲泡：沸水焖5分钟<br>通用健康饮食参考</div><button class="c-card-btn">收藏</button></div>
-        <div class="glass-card c-card"><div class="c-card-icon">🍊</div><div class="c-card-title">陈皮山楂茶</div><div class="c-card-desc">适合：饭后1小时<br>冲泡：温水冲泡即可<br>通用健康饮食参考</div><button class="c-card-btn">收藏</button></div>
-        <div class="glass-card c-card"><div class="c-card-icon">🌸</div><div class="c-card-title">百合莲子茶</div><div class="c-card-desc">适合：睡前1小时<br>冲泡：小火慢煮20分钟<br>通用健康饮食参考</div><button class="c-card-btn">收藏</button></div>
-      </div>
-
-      <!-- Touch -->
-      <div class="sense-header"><div class="sense-icon">✋</div><div class="sense-name">触觉放松</div></div>
-      <div class="carousel">
-        <div class="glass-card c-card"><div class="c-card-icon">🫁</div><div class="c-card-title">呼吸训练</div><div class="c-card-desc">腹式呼吸 · 10分钟<br>4-7-8 放松法 · 5分钟<br>森林冥想引导 · 15分钟</div><button class="c-card-btn" onclick="gotoScreen('senses')">开始训练</button></div>
-        <div class="glass-card c-card"><div class="c-card-icon">🦶</div><div class="c-card-title">泡脚放松</div><div class="c-card-desc">温水泡脚 15-20 分钟<br>水温以不烫手为宜<br>暖足热敷包</div><button class="c-card-btn">查看引导</button></div>
-        <div class="glass-card c-card"><div class="c-card-icon">👐</div><div class="c-card-title">穴位放松</div><div class="c-card-desc">手部放松按压<br>肩颈舒缓引导<br>足底放松</div><button class="c-card-btn">进入视频</button></div>
-        <div class="glass-card c-card"><div class="c-card-icon">💆</div><div class="c-card-title">放松按摩</div><div class="c-card-desc">肩颈放松 · 8分钟<br>腰背舒缓 · 10分钟<br>泡沫轴筋膜</div><button class="c-card-btn">开始跟练</button></div>
-      </div>
-      <div class="senses-disclaimer">本模块提供生活方式与放松建议，仅供健康管理参考，不构成医疗建议。</div>
     </div>
-    <div style="height:80px;"></div>
-    <div class="bottom-nav">
-      <button class="nav-item" onclick="gotoScreen('home')"><div class="nav-item-icon">🏠</div><div class="nav-item-label">首页</div></button>
-      <button class="nav-item active"><div class="nav-item-icon">🌿</div><div class="nav-item-label">五感</div></button>
-      <button class="nav-item" onclick="gotoScreen('movement')"><div class="nav-item-icon">🧘</div><div class="nav-item-label">运动</div></button>
-      <button class="nav-item" onclick="gotoScreen('food')"><div class="nav-item-icon">🥗</div><div class="nav-item-label">食疗</div></button>
-      <button class="nav-item" onclick="gotoScreen('forest-page')"><div class="nav-item-icon">🌳</div><div class="nav-item-label">森林</div></button>
-    </div>
-  </div>
-</div>
+</section>
 
-<!-- ============ 6. MOVEMENT ============ -->
-<div class="screen" id="movement">
-  <div style="background:var(--mist);min-height:100vh;">
-    <div class="nav-bar">
-      <button class="back-btn" onclick="gotoScreen('home')">←</button>
-      <div class="nav-title">Movement Recovery</div>
-      <div style="width:36px;"></div>
-    </div>
-    <div class="move-content">
-      <div class="glass-card move-ai-card">
-        <div class="move-ai-label">AI 今日推荐 · 根据你的 Recovery Score</div>
-        <div class="move-ai-text">肩颈紧绷 + 压力偏高，优先推荐舒缓类运动。睡眠不足，避免高强度训练。</div>
-      </div>
-      <div class="move-cards">
-        <div class="glass-card move-card">
-          <div class="move-card-img" style="background:linear-gradient(135deg,#1e3518,#3d6030);">🎋<div class="move-badge">优先推荐</div></div>
-          <div class="move-card-body">
-            <div class="move-card-title">八段锦</div>
-            <div class="move-card-sub">舒缓久坐 · 改善肩颈状态</div>
-            <div class="move-meta">
-              <div class="move-meta-item">⏱ 15分钟</div>
-              <div class="move-meta-item">📊 初级</div>
-              <div class="move-meta-item">✨ 全身舒缓</div>
+<!-- 三大核心优势 -->
+<section class="section advantages">
+    <div class="container">
+        <h2 class="sec-title" data-en="Our Core Advantages" data-ar="مزايا أساسية" data-es="Nuestras Ventajas Principales">Our Core Advantages</h2>
+        <div class="adv-row">
+            <div class="adv-card">
+                <h3 data-en="Rich Industry Experience" data-ar="خبرة صناعية غنية" data-es="Amplia Experiencia">Rich Industry Experience</h3>
+                <p data-en="Years of fishing tackle manufacturing & export experience" data-ar="سنوات خبرة في تصنيع وتصدير معدات الصيد" data-es="Años de fabricación y exportación de artículos de pesca">Years of fishing tackle manufacturing & export experience</p>
             </div>
-            <div style="margin-bottom:10px;"><div class="section-label">连续打卡</div>
-            <div class="streak-row">
-              <div class="streak-dot done">一</div><div class="streak-dot done">二</div><div class="streak-dot done">三</div><div class="streak-dot done">四</div><div class="streak-dot">五</div><div class="streak-dot">六</div><div class="streak-dot">日</div>
-            </div></div>
-            <button class="pill-btn primary" style="width:100%;font-size:14px;padding:12px;">开始跟练</button>
-          </div>
-        </div>
-        <div class="glass-card move-card">
-          <div class="move-card-img" style="background:linear-gradient(135deg,#2a3a5a,#3d5080);">🧘<div class="move-badge">今日推荐</div></div>
-          <div class="move-card-body">
-            <div class="move-card-title">温和瑜伽</div>
-            <div class="move-card-sub">高压力或身体需要额外照顾时</div>
-            <div class="move-meta">
-              <div class="move-meta-item">⏱ 20分钟</div>
-              <div class="move-meta-item">📊 初级</div>
-              <div class="move-meta-item">✨ 压力舒缓</div>
+            <div class="adv-card">
+                <h3 data-en="Complete Certifications" data-ar="شهادات كاملة" data-es="Certificaciones Completas">Complete Certifications</h3>
+                <p data-en="Meet EU,US & Middle‑east market standards" data-ar="متوافق مع معايير أسواق الاتحاد الأوروبي وأمريكا والشرق الأوسط" data-es="Cumplir normativas UE,EE.UU y Oriente Medio">Meet EU,US & Middle‑east market standards</p>
             </div>
-            <div style="display:flex;gap:8px;align-items:center;margin-bottom:12px;"><div style="flex:1;height:6px;background:var(--linen);border-radius:3px;overflow:hidden;"><div style="width:65%;height:100%;background:var(--sage);border-radius:3px;"></div></div><span style="font-size:12px;color:var(--ink-m);">完成率 65%</span></div>
-            <button class="pill-btn outline" style="width:100%;font-size:14px;padding:12px;">开始跟练</button>
-          </div>
-        </div>
-        <div class="glass-card move-card">
-          <div class="move-card-img" style="background:linear-gradient(135deg,#3a2a1a,#6a4a2a);">🦅</div>
-          <div class="move-card-body">
-            <div class="move-card-title">五禽戏</div>
-            <div class="move-card-sub">提升日常活力与身体柔韧性</div>
-            <div class="move-meta">
-              <div class="move-meta-item">⏱ 18分钟</div>
-              <div class="move-meta-item">📊 中级</div>
-              <div class="move-meta-item">✨ 活力提升</div>
+            <div class="adv-card">
+                <h3 data-en="Custom OEM & ODM" data-ar="تخصيص OEM وODM" data-es="OEM y ODM Personalizado">Custom OEM & ODM</h3>
+                <p data-en="Rod, reel,lure,packaging & private label customizable" data-ar="قضبان وبكرات وطعوم وتعبئة وعلامة خاصة قابلة للتخصيص" data-es="Caña, carrete, señuelo, empaque y marca privada totalmente personalizable">Rod, reel,lure,packaging & private label customizable</p>
             </div>
-            <button class="pill-btn ghost" style="width:100%;font-size:14px;padding:12px;background:var(--linen);color:var(--ink);">开始跟练</button>
-          </div>
         </div>
-      </div>
-      <div class="disclaimer">运动强度请根据自身状况调整，如有关节损伤或心血管疾病请先咨询医生。</div>
     </div>
-    <div style="height:80px;"></div>
-    <div class="bottom-nav">
-      <button class="nav-item" onclick="gotoScreen('home')"><div class="nav-item-icon">🏠</div><div class="nav-item-label">首页</div></button>
-      <button class="nav-item" onclick="gotoScreen('senses')"><div class="nav-item-icon">🌿</div><div class="nav-item-label">五感</div></button>
-      <button class="nav-item active"><div class="nav-item-icon">🧘</div><div class="nav-item-label">运动</div></button>
-      <button class="nav-item" onclick="gotoScreen('food')"><div class="nav-item-icon">🥗</div><div class="nav-item-label">食疗</div></button>
-      <button class="nav-item" onclick="gotoScreen('forest-page')"><div class="nav-item-icon">🌳</div><div class="nav-item-label">森林</div></button>
-    </div>
-  </div>
-</div>
+</section>
 
-<!-- ============ 7. FOOD ============ -->
-<div class="screen" id="food">
-  <div style="background:var(--mist);min-height:100vh;">
-    <div class="nav-bar">
-      <button class="back-btn" onclick="gotoScreen('home')">←</button>
-      <div class="nav-title">Food Recovery</div>
-      <div style="width:36px;"></div>
-    </div>
-    <div class="food-content">
-      <div class="glass-card nutrition-card">
-        <div class="section-label">今日营养参考区间</div>
-        <div style="font-size:11px;color:var(--ink-l);margin-bottom:10px;">通用健康饮食参考范围，非个体化营养方案</div>
-        <div class="nutrition-bars">
-          <div class="nutr-row"><div class="nutr-label">蛋白质</div><div class="nutr-track"><div class="nutr-fill" style="width:53%;"></div></div><div class="nutr-val">48/90g</div></div>
-          <div class="nutr-row"><div class="nutr-label">碳水</div><div class="nutr-track"><div class="nutr-fill" style="width:60%;background:var(--gold);"></div></div><div class="nutr-val">132/220g</div></div>
-          <div class="nutr-row"><div class="nutr-label">维C</div><div class="nutr-track"><div class="nutr-fill" style="width:62%;background:#8BA47A;"></div></div><div class="nutr-val">62/100mg</div></div>
-          <div class="nutr-row"><div class="nutr-label">饮水</div><div class="nutr-track"><div class="nutr-fill" style="width:55%;background:#7aafb8;"></div></div><div class="nutr-val">1100/2000ml</div></div>
+<!-- 产品分类 -->
+<section class="section product-category">
+    <div class="container">
+        <h2 class="sec-title" data-en="Product Categories" data-ar="فئات المنتجات" data-es="Categorías de Productos">Product Categories</h2>
+        <div class="cat-row">
+            <div class="cat-card">
+                <div class="cat-img"></div>
+                <h4 data-en="Fishing Rods" data-ar="قضبان الصيد" data-es="Cañas de pesca">Fishing Rods</h4>
+            </div>
+            <div class="cat-card">
+                <div class="cat-img"></div>
+                <h4 data-en="Fishing Reels" data-ar="بكرات الصيد" data-es="Carretes de pesca">Fishing Reels</h4>
+            </div>
+            <div class="cat-card">
+                <div class="cat-img"></div>
+                <h4 data-en="Fishing Lures" data-ar="طعوم الصيد" data-es="Señuelos de pesca">Fishing Lures</h4>
+            </div>
+            <div class="cat-card">
+                <div class="cat-img"></div>
+                <h4 data-en="Fishing Accessories" data-ar="ملحقات الصيد" data-es="Accesorios de pesca">Fishing Accessories</h4>
+            </div>
         </div>
-      </div>
-      <div class="meal-tabs">
-        <button class="meal-tab active" onclick="setMealTab(this)">早餐</button>
-        <button class="meal-tab" onclick="setMealTab(this)">午餐</button>
-        <button class="meal-tab" onclick="setMealTab(this)">晚餐</button>
-        <button class="meal-tab" onclick="setMealTab(this)">加餐</button>
-      </div>
-      <div class="glass-card recipe-card">
-        <div class="recipe-img">🥣</div>
-        <div class="recipe-body">
-          <div class="recipe-name">山药红枣小米粥</div>
-          <div class="recipe-tags"><span class="recipe-tag">温和易消化</span><span class="recipe-tag">早餐推荐</span></div>
-          <div style="font-size:13px;color:var(--ink-m);line-height:1.6;margin-bottom:10px;">食材：小米 80g · 山药 100g · 红枣 5颗 · 枸杞少许</div>
-          <div style="font-size:12px;color:var(--ink-l);margin-bottom:12px;">步骤：① 山药去皮切块 ② 小米洗净与山药同煮 ③ 加红枣慢炖20分钟</div>
-          <div class="recipe-bottom">
-            <div class="recipe-kcal">约 280 kcal · 蛋白质 8g</div>
-            <button class="c-card-btn">开始制作</button>
-          </div>
+        <div class="text-center mt30">
+            <a href="products.html" class="btn-outline" data-en="View All Products" data-ar="عرض جميع المنتجات" data-es="Ver Todos Los Productos">View All Products</a>
         </div>
-      </div>
-      <div class="glass-card recipe-card">
-        <div class="recipe-img" style="background:linear-gradient(135deg,#5a8a5a,#7aaa6a);">🥗</div>
-        <div class="recipe-body">
-          <div class="recipe-name">三文鱼藜麦沙拉</div>
-          <div class="recipe-tags"><span class="recipe-tag">高蛋白</span><span class="recipe-tag">低GI</span><span class="recipe-tag">素食可替换</span></div>
-          <div style="font-size:13px;color:var(--ink-m);line-height:1.6;margin-bottom:10px;">食材：三文鱼 120g · 藜麦 60g · 西兰花 · 橄榄油</div>
-          <div class="recipe-bottom">
-            <div class="recipe-kcal">约 410 kcal · 蛋白质 28g</div>
-            <button class="c-card-btn">开始制作</button>
-          </div>
+    </div>
+</section>
+
+<!-- Why choose us -->
+<section class="section whyus bg-light">
+    <div class="container">
+        <h2 class="sec-title" data-en="Why Choose Us" data-ar="لماذا تختارنا" data-es="Por Qué Elegirnos">Why Choose Us</h2>
+        <div class="why-row">
+            <div class="why-item" data-en="Strict quality inspection process" data-ar="إجراء فحص جودة صارم" data-es="Proceso estricto de inspección de calidad">✅ Strict quality inspection process</div>
+            <div class="why-item" data-en="Flexible Low MOQ" data-ar="الحد الأدنى للكمية المرن" data-es="MOQ flexible bajo">✅ Flexible Low MOQ</div>
+            <div class="why-item" data-en="Fast production lead‑time" data-ar="مهلة إنتاج سريعة" data-es="Plazos de producción rápidos">✅ Fast production lead‑time</div>
+            <div class="why-item" data-en="Professional one‑stop export service" data-ar="خدمة تصدير شاملة احترافية" data-es="Servicio de exportación integral profesional">✅ Professional one‑stop export service</div>
         </div>
-      </div>
-      <div class="disclaimer">以上为健康饮食生活方式参考，不构成个体化营养方案。如有慢性疾病、肾脏疾病或特殊饮食需求，请遵循医生或注册营养师建议。</div>
     </div>
-    <div style="height:80px;"></div>
-    <div class="bottom-nav">
-      <button class="nav-item" onclick="gotoScreen('home')"><div class="nav-item-icon">🏠</div><div class="nav-item-label">首页</div></button>
-      <button class="nav-item" onclick="gotoScreen('senses')"><div class="nav-item-icon">🌿</div><div class="nav-item-label">五感</div></button>
-      <button class="nav-item" onclick="gotoScreen('movement')"><div class="nav-item-icon">🧘</div><div class="nav-item-label">运动</div></button>
-      <button class="nav-item active"><div class="nav-item-icon">🥗</div><div class="nav-item-label">食疗</div></button>
-      <button class="nav-item" onclick="gotoScreen('forest-page')"><div class="nav-item-icon">🌳</div><div class="nav-item-label">森林</div></button>
+</section>
+
+<!-- 客户见证 -->
+<section class="section testimonial">
+    <div class="container">
+        <h2 class="sec-title" data-en="Client Testimonials" data-ar="آراء العملاء" data-es="Testimonios de Clientes">Client Testimonials</h2>
+        <div class="testi-row">
+            <div class="testi-card">
+                <p data-en="Stable quality, reliable OEM service for our fishing retail business." data-ar="جودة مستقرة وخدمة OEM موثوقة لأعمال بيع معدات الصيد لدينا" data-es="Calidad estable, servicio OEM fiable para nuestro negocio de pesca minorista">Stable quality, reliable OEM service for our fishing retail business.</p>
+                <span>— Import Client from USA</span>
+            </div>
+        </div>
     </div>
-  </div>
-</div>
+</section>
 
-<!-- ============ 8. RECOVERY FOREST ============ -->
-<div class="screen forest-bg" id="forest-page">
-  <div class="mist-layer"></div>
-  <div class="forest-content">
-    <div class="forest-header">
-      <button class="back-btn" style="background:rgba(255,255,255,.15);border-color:rgba(255,255,255,.2);" onclick="gotoScreen('home')"><span style="color:#fff;">←</span></button>
-      <div class="forest-title">Recovery Forest</div>
-      <div style="width:36px;"></div>
+<!-- 获取报价表单 -->
+<section class="section quote-section bg-primary-light">
+    <div class="container">
+        <h2 class="sec-title" data-en="Get Your Quotation" data-ar="احصل على عرض السعر" data-es="Solicite Su Cotización">Get Your Quotation</h2>
+        <form class="quote-form" id="homeQuoteForm">
+            <div class="form-row">
+                <input type="text" placeholder="Your Name" data-placeholder-en="Your Name" data-placeholder-ar="اسمك" data-placeholder-es="Su Nombre" required>
+                <input type="email" placeholder="Email Address" data-placeholder-en="Email Address" data-placeholder-ar="البريد الإلكتروني" data-placeholder-es="Correo Electrónico" required>
+            </div>
+            <textarea placeholder="Tell us your requirements" data-placeholder-en="Tell us your requirements" data-placeholder-ar="أخبرنا بمتطلباتك" data-placeholder-es="Cuéntenos sus requisitos"></textarea>
+            <div class="flex gap20 mt15">
+                <button type="submit" class="btn-primary" data-en="Submit Inquiry" data-ar="إرسال الاستفسار" data-es="Enviar Consulta">Submit Inquiry</button>
+                <a href="https://wa.me/123456789" target="_blank" class="btn-whatsapp">WhatsApp Us</a>
+            </div>
+            <!-- 表单提交后端接口地址 action="/api/inquiry" -->
+        </form>
     </div>
-    <div class="journey-label">RECOVERY JOURNEY</div>
-    <div class="journey-days">已坚持 32 天</div>
-    <div class="journey-sub">完成率 88% · 继续保持 🌱</div>
-    <div class="forest-tree-area">
-      <svg class="forest-tree" viewBox="0 0 240 300">
-        <!-- Ground -->
-        <ellipse cx="120" cy="285" rx="60" ry="8" fill="rgba(108,138,98,.3)"/>
-        <!-- Trunk -->
-        <rect x="108" y="220" width="24" height="65" rx="8" fill="#6B4A2A"/>
-        <rect x="112" y="220" width="4" height="65" fill="rgba(255,255,255,.08)"/>
-        <!-- Main canopy layers -->
-        <ellipse cx="120" cy="210" rx="60" ry="45" fill="#2d5a22"/>
-        <ellipse cx="120" cy="190" rx="50" ry="40" fill="#3a7030"/>
-        <ellipse cx="120" cy="168" rx="42" ry="36" fill="#4a8a3a"/>
-        <ellipse cx="120" cy="148" rx="34" ry="30" fill="#5a9e48"/>
-        <ellipse cx="120" cy="130" rx="26" ry="24" fill="#6ab258"/>
-        <!-- Glowing leaves (completed tasks) -->
-        <circle cx="88" cy="185" r="8" fill="rgba(231,196,106,.7)" opacity=".9"/>
-        <circle cx="148" cy="178" r="6" fill="rgba(231,196,106,.7)"/>
-        <circle cx="102" cy="158" r="7" fill="rgba(231,196,106,.6)"/>
-        <circle cx="138" cy="162" r="5" fill="rgba(231,196,106,.6)"/>
-        <circle cx="120" cy="142" r="6" fill="rgba(231,196,106,.8)"/>
-        <circle cx="108" cy="130" r="5" fill="rgba(231,196,106,.5)"/>
-        <circle cx="132" cy="128" r="4" fill="rgba(231,196,106,.5)"/>
-        <!-- Birds (90-day milestone) -->
-        <path d="M60 100 Q65 95 70 100 Q75 95 80 100" stroke="rgba(231,196,106,.8)" stroke-width="1.5" fill="none"/>
-        <path d="M170 85 Q175 80 180 85 Q185 80 190 85" stroke="rgba(231,196,106,.6)" stroke-width="1.5" fill="none"/>
-        <!-- Blossoms (30-day milestone) -->
-        <circle cx="95" cy="145" r="5" fill="rgba(255,200,200,.7)"/>
-        <circle cx="145" cy="140" r="4" fill="rgba(255,200,200,.6)"/>
-        <circle cx="116" cy="118" r="4" fill="rgba(255,200,200,.7)"/>
-        <!-- Stream reflection at base -->
-        <ellipse cx="120" cy="290" rx="40" ry="5" fill="rgba(100,160,200,.2)"/>
-      </svg>
+</section>
+
+<!-- 页脚 -->
+<footer class="footer">
+    <div class="container">
+        <div class="footer-row">
+            <div class="footer-col">
+                <h4>FISHING TACKLE SUPPLIER</h4>
+                <p data-en="Professional fishing gear OEM ODM manufacturer from China" data-ar="مصنع معدات صيد OEM ODM احترافي من الصين" data-es="Fabricante profesional OEM ODM artículos de pesca de China">Professional fishing gear OEM ODM manufacturer from China</p>
+            </div>
+            <div class="footer-col">
+                <h4 data-en="Quick Links" data-ar="روابط سريعة" data-es="Enlaces Rápidos">Quick Links</h4>
+                <a href="index.html" data-en="Home" data-ar="الرئيسية" data-es="Inicio">Home</a>
+                <a href="products.html" data-en="Products" data-ar="المنتجات" data-es="Productos">Products</a>
+                <a href="about.html" data-en="About Us" data-ar="من نحن" data-es="Sobre Nosotros">About Us</a>
+                <a href="contact.html" data-en="Contact" data-ar="اتصل بنا" data-es="Contacto">Contact</a>
+                <a href="privacy.html" data-en="Privacy Policy" data-ar="سياسة الخصوصية" data-es="Política de Privacidad">Privacy Policy</a>
+            </div>
+        </div>
+        <div class="copyright">©2026 Fishing Tackle Supplier. All rights reserved.</div>
     </div>
-    <div class="tree-stats">
-      <div class="stat-card"><div class="stat-val">88%</div><div class="stat-label">本周完成率</div></div>
-      <div class="stat-card"><div class="stat-val">32</div><div class="stat-label">连续坚持天数</div></div>
-      <div class="stat-card"><div class="stat-val">124</div><div class="stat-label">累计任务完成</div></div>
-      <div class="stat-card"><div class="stat-val">+12%</div><div class="stat-label">本周状态提升</div></div>
-    </div>
-    <div class="milestone-row">
-      <div class="milestone done"><span>🌱</span><p>7天 · 发芽</p></div>
-      <div class="milestone done"><span>🌸</span><p>30天 · 开花</p></div>
-      <div class="milestone done"><span>🐦</span><p>90天 · 飞鸟</p></div>
-      <div class="milestone"><span>🌊</span><p>180天 · 溪流</p></div>
-    </div>
-  </div>
-  <div class="bottom-nav" style="background:rgba(20,35,16,.6);border-color:rgba(255,255,255,.1);">
-    <button class="nav-item" onclick="gotoScreen('home')"><div class="nav-item-icon">🏠</div><div class="nav-item-label" style="color:rgba(255,255,255,.5);">首页</div></button>
-    <button class="nav-item" onclick="gotoScreen('senses')"><div class="nav-item-icon">🌿</div><div class="nav-item-label" style="color:rgba(255,255,255,.5);">五感</div></button>
-    <button class="nav-item" onclick="gotoScreen('movement')"><div class="nav-item-icon">🧘</div><div class="nav-item-label" style="color:rgba(255,255,255,.5);">运动</div></button>
-    <button class="nav-item" onclick="gotoScreen('food')"><div class="nav-item-icon">🥗</div><div class="nav-item-label" style="color:rgba(255,255,255,.5);">食疗</div></button>
-    <button class="nav-item active"><div class="nav-item-icon">🌳</div><div class="nav-item-label" style="color:var(--sage-l);">森林</div></button>
-  </div>
-</div>
+</footer>
 
-<script>
-/* ============ NAVIGATION ============ */
-let current = 'splash';
-function gotoScreen(id){
-  const old = document.getElementById(current);
-  const next = document.getElementById(id);
-  if(!next || id === current) return;
-  old.classList.remove('active');
-  old.style.display = 'none';
-  next.style.display = 'flex';
-  next.classList.add('active','entering');
-  setTimeout(()=>next.classList.remove('entering'), 400);
-  current = id;
-  if(id === 'score-page') animateScore();
-  if(id === 'home') animateRing();
-}
-
-/* ============ SCORE ANIMATION ============ */
-function animateScore(){
-  const el = document.getElementById('animated-score');
-  const target = 78;
-  let n = 0;
-  const t = setInterval(()=>{
-    n = Math.min(n+2, target);
-    el.textContent = n;
-    if(n >= target) clearInterval(t);
-  }, 18);
-}
-
-function animateRing(){
-  const fill = document.getElementById('score-ring-fill');
-  if(fill){
-    const pct = 78/100;
-    const circ = 427;
-    fill.style.strokeDashoffset = circ - (circ * pct);
-  }
-}
-
-/* ============ BODY PART TOGGLE ============ */
-function toggleBodyPart(el){
-  el.classList.toggle('selected');
-}
-
-/* ============ SLIDER ============ */
-function updateSlider(input, labelId){
-  document.getElementById(labelId).textContent = input.value;
-  const pct = ((input.value - input.min)/(input.max - input.min))*100;
-  input.style.setProperty('--pct', pct+'%');
-}
-// Init sliders
-document.querySelectorAll('input[type=range]').forEach(sl=>{
-  const pct = ((sl.value - sl.min)/(sl.max - sl.min))*100;
-  sl.style.setProperty('--pct', pct+'%');
-});
-
-/* ============ TASK TOGGLE ============ */
-function toggleTask(el){
-  const dot = el.querySelector('.task-dot');
-  const check = el.querySelector('.task-check');
-  const time = el.querySelector('.task-time');
-  const isDone = check.classList.contains('done');
-  if(isDone){
-    check.classList.remove('done'); check.textContent='';
-    dot.classList.remove('done');
-    time.textContent = time.dataset.original || '待完成';
-  } else {
-    if(!time.dataset.original) time.dataset.original = time.textContent;
-    check.classList.add('done'); check.textContent='✓';
-    dot.classList.add('done');
-    time.textContent = '已完成';
-  }
-}
-
-/* ============ AUDIO PLAYER ============ */
-let playing = false;
-function togglePlay(){
-  playing = !playing;
-  document.getElementById('play-btn').textContent = playing ? '⏸' : '▶';
-}
-
-/* ============ MEAL TABS ============ */
-function setMealTab(el){
-  document.querySelectorAll('.meal-tab').forEach(t=>t.classList.remove('active'));
-  el.classList.add('active');
-}
-
-/* ============ INIT ============ */
-// Set today's date
-(function(){
-  const now = new Date();
-  const d = document.getElementById('home-date-text');
-  if(d){
-    const months=['一','二','三','四','五','六','七','八','九','十','十一','十二'];
-    d.textContent = `${now.getFullYear()}年${now.getMonth()+1}月${now.getDate()}日`;
-  }
-})();
-</script>
+<script src="assets/js/main.js"></script>
+<!-- 预留第三方统计代码位置 -->
+<!-- <script>Google Analytics / Facebook Pixel here</script> -->
 </body>
 </html>
